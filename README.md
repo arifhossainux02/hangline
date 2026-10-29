@@ -2,6 +2,10 @@
 
 Hangline is a demo streetwear store that shows how far you can push a standard Shopify theme. The homepage replaces the usual product grid with a real-time 3D clothing rail: shoppers drag or scroll along the rail, garments swing on their hangers, and clicking a piece brings it forward with a Front/Back view, size picker and add to cart. Cart and checkout stay native Shopify.
 
+![Hangline 3D clothing rail](docs/hangline-demo-poster.jpg)
+
+[Watch the 24-second demo video](docs/hangline-demo.mp4)
+
 It is built on [Dawn](https://github.com/Shopify/dawn) with one self-contained section, so it drops into any Online Store 2.0 theme.
 
 ## What's custom
