@@ -1,0 +1,181 @@
+{{ 'section-scene-rail.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign rail_collection = section.settings.collection
+  assign product_limit = section.settings.product_limit
+-%}
+
+<script type="importmap">
+  { "imports": { "three": "{{ 'three.module.min.js' | asset_url }}" } }
+</script>
+
+<scene-rail
+  class="scene-rail"
+  data-section-id="{{ section.id }}"
+  style="--scene-rail-bg: {{ section.settings.background }}; --scene-rail-text: {{ section.settings.text_color }}; --scene-rail-height: {{ section.settings.height }}vh;"
+>
+  <div class="scene-rail__intro page-width">
+    {%- if section.settings.eyebrow != blank -%}
+      <p class="scene-rail__eyebrow">{{ section.settings.eyebrow | escape }}</p>
+    {%- endif -%}
+    {%- if section.settings.heading != blank -%}
+      <h2 class="scene-rail__heading">{{ section.settings.heading | escape }}</h2>
+    {%- endif -%}
+  </div>
+
+  <div class="scene-rail__stage" data-stage>
+    <canvas class="scene-rail__canvas" data-canvas aria-hidden="true"></canvas>
+    <p class="scene-rail__hint" data-hint>{{ section.settings.hint | escape }}</p>
+    <div class="scene-rail__progress" aria-hidden="true"><span data-progress></span></div>
+  </div>
+
+  {%- comment -%} Product detail panel, filled by scene-rail.js {%- endcomment -%}
+  <aside class="scene-rail__panel" data-panel hidden aria-live="polite">
+    <button type="button" class="scene-rail__close" data-close aria-label="{{ 'accessibility.close' | t }}">
+      {{- 'icon-close.svg' | inline_asset_content -}}
+    </button>
+    <p class="scene-rail__count" data-count></p>
+    <h3 class="scene-rail__title" data-title></h3>
+    <p class="scene-rail__price" data-price></p>
+    <div class="scene-rail__views" role="group" aria-label="View">
+      <button type="button" class="is-active" data-view="front">Front</button>
+      <button type="button" data-view="back">Back</button>
+    </div>
+    <p class="scene-rail__label">Size</p>
+    <div class="scene-rail__sizes" data-sizes></div>
+    <button type="button" class="scene-rail__add button" data-add disabled>Add to cart</button>
+    <p class="scene-rail__error" data-error hidden></p>
+    <a class="scene-rail__link" data-link href="#">View product page &rarr;</a>
+  </aside>
+
+  {%- comment -%}
+    Plain product grid. Shown when WebGL is unavailable or the visitor prefers reduced motion,
+    and keeps every product crawlable.
+  {%- endcomment -%}
+  <ul class="scene-rail__fallback page-width" data-fallback>
+    {%- for product in rail_collection.products limit: product_limit -%}
+      <li>
+        <a href="{{ product.url }}">
+          {%- if product.featured_image -%}
+            {{
+              product.featured_image
+              | image_url: width: 600
+              | image_tag: loading: 'lazy', widths: '300, 450, 600', sizes: '(min-width: 750px) 25vw, 50vw'
+            }}
+          {%- endif -%}
+          <span>{{ product.title | escape }}</span>
+          <span>{{ product.price | money }}</span>
+        </a>
+      </li>
+    {%- else -%}
+      <li class="scene-rail__empty">Choose a collection for this section in the theme editor.</li>
+    {%- endfor -%}
+  </ul>
+
+  <script type="application/json" data-products>
+    [
+      {%- for product in rail_collection.products limit: product_limit -%}
+        {%- liquid
+          assign size_index = 0
+          for option in product.options_with_values
+            assign option_name = option.name | downcase
+            if option_name == 'size'
+              assign size_index = forloop.index0
+            endif
+          endfor
+          assign front = product.images[0]
+          assign back = product.images[1] | default: front
+        -%}
+        {
+          "id": {{ product.id }},
+          "title": {{ product.title | json }},
+          "url": {{ product.url | json }},
+          "price": {{ product.price | money | json }},
+          "front": {{ front | image_url: width: 900 | json }},
+          "back": {{ back | image_url: width: 900 | json }},
+          "variants": [
+            {%- for variant in product.variants -%}
+              {
+                "id": {{ variant.id }},
+                "size": {{ variant.options[size_index] | json }},
+                "available": {{ variant.available | json }}
+              }{%- unless forloop.last -%},{%- endunless -%}
+            {%- endfor -%}
+          ]
+        }{%- unless forloop.last -%},{%- endunless -%}
+      {%- endfor -%}
+    ]
+  </script>
+</scene-rail>
+
+<script type="module" src="{{ 'scene-rail.js' | asset_url }}"></script>
+
+{% schema %}
+{
+  "name": "3D clothing rail",
+  "tag": "section",
+  "class": "section section-scene-rail",
+  "settings": [
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection",
+      "info": "Each product's first image is the front view and the second image is the back view. A variant option named Size becomes the size picker."
+    },
+    {
+      "type": "range",
+      "id": "product_limit",
+      "label": "Products on the rail",
+      "min": 3,
+      "max": 24,
+      "step": 1,
+      "default": 12
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "New collection | Premium streetwear"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Layers that hang right."
+    },
+    {
+      "type": "text",
+      "id": "hint",
+      "label": "Hint text",
+      "default": "Drag or scroll to browse. Click a piece to see it up close."
+    },
+    {
+      "type": "range",
+      "id": "height",
+      "label": "Stage height",
+      "min": 50,
+      "max": 100,
+      "step": 5,
+      "unit": "vh",
+      "default": 75
+    },
+    {
+      "type": "color",
+      "id": "background",
+      "label": "Background",
+      "default": "#f4f4f2"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text",
+      "default": "#111111"
+    }
+  ],
+  "presets": [
+    {
+      "name": "3D clothing rail"
+    }
+  ]
+}
+{% endschema %}
