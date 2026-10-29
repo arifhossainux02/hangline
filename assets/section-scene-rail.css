@@ -270,6 +270,14 @@
     margin-top: -2rem;
   }
 
+  .scene-rail__intro {
+    transition: opacity 0.4s;
+  }
+
+  .scene-rail.has-selection .scene-rail__intro {
+    opacity: 0;
+  }
+
   .scene-rail__panel {
     top: auto;
     right: 1.2rem;

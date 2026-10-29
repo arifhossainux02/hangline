@@ -526,6 +526,7 @@ class SceneRail extends HTMLElement {
     const firstAvailable = product.variants.find((variant) => variant.available);
     this.chooseVariant(firstAvailable?.id ?? null);
     this.panel.hidden = false;
+    this.classList.add('has-selection');
   }
 
   deselect() {
@@ -534,6 +535,7 @@ class SceneRail extends HTMLElement {
     this.selected.showingBack = false;
     this.selected = null;
     this.panel.hidden = true;
+    this.classList.remove('has-selection');
   }
 
   chooseVariant(id) {
